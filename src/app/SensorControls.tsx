@@ -1,6 +1,6 @@
 // src/components/SensorControls.tsx
 import React, { JSX } from 'react';
-import type { SensorControlsProps } from '@/types/sensor';
+import type { SensorControlsProps } from '../types/sensor';
 
 const SensorControls = ({
   isConnected,

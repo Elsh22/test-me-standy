@@ -1,9 +1,8 @@
-// src/types/sensor.ts
+/// src/types/sensor.ts
 export interface SensorData {
   timestamp: string;
   weight: number;
   avgWeight: number;
-  originalTimestamp?: string;
   currentTime?: string;
 }
 
@@ -11,12 +10,19 @@ export interface SensorStatsProps {
   data: SensorData[];
   currentWeight: number;
   avgWeight: number;
+  isRecording: boolean;
 }
 
 export interface StatCardProps {
   title: string;
   value: number;
   unit?: string;
+}
+
+export interface SensorGraphProps {
+  data: SensorData[];
+  isRecording: boolean;
+  windowSize?: number;
 }
 
 export interface SensorControlsProps {
@@ -28,8 +34,4 @@ export interface SensorControlsProps {
   onToggleRecording: () => void;
   onExport: () => void;
   hasData: boolean;
-}
-
-export interface SensorGraphProps {
-  data: SensorData[];
 }

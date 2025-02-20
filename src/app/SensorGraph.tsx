@@ -9,45 +9,65 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
-import type { SensorData, SensorGraphProps } from '@/types/sensor';
+import type { SensorData, SensorGraphProps } from '../types/sensor';
 
-const SensorGraph: React.FC<SensorGraphProps> = ({ data }) => {
-  // Ensure we have data before rendering
+const SensorGraph: React.FC<SensorGraphProps> = ({ 
+  data,
+  isRecording
+}) => {
+  // Show empty state when no data
   if (!data || data.length === 0) {
     return (
-      <div className="bg-white p-6 rounded-xl shadow-lg h-96 flex items-center justify-center">
-        <p className="text-gray-500">No data available</p>
+      <div className="w-full h-96 p-6">
+        <h2 className="text-xl font-semibold mb-4">
+          {isRecording ? 'Recording in Progress...' : 'Sensor Readings'}
+        </h2>
+        <div className="w-full h-full flex items-center justify-center">
+          <p className="text-gray-500">
+            {isRecording ? 'Waiting for sensor data...' : 'No data available'}
+          </p>
+        </div>
       </div>
     );
   }
 
-  // Calculate Y-axis domain with some padding
-  const maxWeight = Math.max(
-    ...data.map(d => Math.max(d.weight || 0, d.avgWeight || 0))
-  );
-  const minWeight = Math.min(
-    ...data.map(d => Math.min(d.weight || 0, d.avgWeight || 0))
-  );
+  // Calculate domains based on available data
+  const maxWeight = Math.max(...data.map(d => Math.max(d.weight || 0, d.avgWeight || 0)));
+  const minWeight = Math.min(...data.map(d => Math.min(d.weight || 0, d.avgWeight || 0)));
+  const padding = (maxWeight - minWeight) * 0.1;
+  
   const yDomain: [number, number] = [
-    Math.floor(minWeight - (maxWeight - minWeight) * 0.1) || 0,
-    Math.ceil(maxWeight + (maxWeight - minWeight) * 0.1) || 4
+    Math.max(0, Math.floor(minWeight - padding)),
+    Math.ceil(maxWeight + padding)
   ];
+
+  // For recording, show only last 20 seconds of data
+  const displayData = isRecording 
+    ? data.slice(-100) // Keep last 100 points during recording
+    : data;
+
+  // Calculate X domain
+  const xDomain = isRecording
+    ? ['dataMin', 'dataMax'] // Auto-scale during recording
+    : ['dataMin', 'dataMax']; // Show full range when stopped
 
   return (
     <div className="w-full h-96 p-6">
-      <h2 className="text-xl font-semibold mb-4">Sensor Readings</h2>
+      <h2 className="text-xl font-semibold mb-4">
+        {isRecording ? 'Live Sensor Data' : 'Recorded Data Analysis'}
+      </h2>
       <div className="w-full h-full">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
-            data={data}
+            data={displayData}
             margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
               dataKey="timestamp"
               type="number"
-              domain={[-2, 'auto']}
-              tickFormatter={(value: number) => parseFloat(value.toString()).toFixed(1)}
+              domain={xDomain}
+              tickFormatter={(value: number) => value.toFixed(1)}
               label={{ value: 'Time (s)', position: 'bottom' }}
             />
             <YAxis
@@ -75,7 +95,7 @@ const SensorGraph: React.FC<SensorGraphProps> = ({ data }) => {
               name="Current Weight"
               stroke="#2563eb"
               dot={false}
-              isAnimationActive={false}
+              isAnimationActive={!isRecording} // Disable animation during recording
             />
             <Line
               type="monotone"
@@ -83,7 +103,7 @@ const SensorGraph: React.FC<SensorGraphProps> = ({ data }) => {
               name="Average Weight"
               stroke="#16a34a"
               dot={false}
-              isAnimationActive={false}
+              isAnimationActive={!isRecording} // Disable animation during recording
             />
           </LineChart>
         </ResponsiveContainer>
