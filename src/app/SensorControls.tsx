@@ -1,8 +1,8 @@
-// src/components/SensorControls.tsx
-import React, { JSX } from 'react';
+"use client"
+import React from 'react';
 import type { SensorControlsProps } from '../types/sensor';
 
-const SensorControls = ({
+const SensorControls: React.FC<SensorControlsProps> = ({
   isConnected,
   isRecording,
   onConnect,
@@ -11,56 +11,63 @@ const SensorControls = ({
   onToggleRecording,
   onExport,
   hasData
-}: SensorControlsProps): JSX.Element => {
+}) => {
   return (
-    <div className="bg-white rounded-xl p-6 shadow-lg">
-      <div className="flex flex-wrap gap-4">
-        <button 
+    <div className="bg-white p-6 rounded-xl shadow-lg">
+      <h2 className="text-xl font-semibold text-gray-800 mb-4">Sensor Controls</h2>
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        {/* Connection */}
+        <button
+          className={`px-4 py-3 rounded-lg font-medium transition-colors ${
+            isConnected 
+              ? 'bg-green-100 text-green-800 hover:bg-green-200'
+              : 'bg-blue-600 text-white hover:bg-blue-700'
+          }`}
           onClick={onConnect}
-          disabled={isConnected}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
-            disabled:bg-gray-300 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg"
+          disabled={isConnected && isRecording}
         >
-          {isConnected ? 'Connected' : 'Connect Port'}
-        </button>
-
-        <button 
-          onClick={onTare}
-          disabled={!isConnected}
-          className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 
-            disabled:bg-gray-300 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg"
-        >
-          Tare
+          {isConnected ? 'Connected ✓' : 'Connect Sensor'}
         </button>
         
-        <button 
+        {/* Tare */}
+        <button
+          className="px-4 py-3 bg-gray-100 text-gray-800 rounded-lg font-medium hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          onClick={onTare}
+          disabled={!isConnected || isRecording}
+        >
+          Tare Sensor
+        </button>
+        
+        {/* Calibrate */}
+        <button
+          className="px-4 py-3 bg-gray-100 text-gray-800 rounded-lg font-medium hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={onCalibrate}
-          disabled={!isConnected}
-          className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 
-            disabled:bg-gray-300 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg"
+          disabled={!isConnected || isRecording}
         >
           Calibrate
         </button>
         
-        <button 
+        {/* Record */}
+        <button
+          className={`px-4 py-3 rounded-lg font-medium transition-colors ${
+            isRecording 
+              ? 'bg-red-600 text-white hover:bg-red-700'
+              : 'bg-blue-600 text-white hover:bg-blue-700'
+          } disabled:opacity-50 disabled:cursor-not-allowed`}
           onClick={onToggleRecording}
           disabled={!isConnected}
-          className={`px-6 py-2 rounded-lg transition-all shadow-md hover:shadow-lg ${
-            isRecording 
-              ? 'bg-red-600 hover:bg-red-700' 
-              : 'bg-blue-600 hover:bg-blue-700'
-          } text-white disabled:bg-gray-300 disabled:cursor-not-allowed`}
         >
           {isRecording ? 'Stop Recording' : 'Start Recording'}
         </button>
         
-        <button 
+        {/* Export */}
+        <button
+          className="px-4 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={onExport}
           disabled={!hasData}
-          className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 
-            disabled:bg-gray-300 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg"
         >
-          Export CSV
+          Export Data
         </button>
       </div>
     </div>

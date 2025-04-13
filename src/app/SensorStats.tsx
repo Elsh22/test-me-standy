@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
+"use client"
+import React, { useEffect, useState } from 'react';
 import type { SensorStatsProps, StatCardProps } from '../types/sensor';
 
 const StatCard: React.FC<StatCardProps> = ({ title, value, unit = '' }) => (
@@ -12,14 +13,16 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, unit = '' }) => (
 );
 
 const SensorStats: React.FC<SensorStatsProps> = ({ 
-  data, 
+  data = [], // Provide default empty array
   currentWeight, 
   avgWeight,
+  currentPsi,
+  avgPsi,
   isRecording
 }) => {
   const [stats, setStats] = useState({
     maxWeight: 0,
-    minWeight: 0,
+    maxPsi: 0,
     duration: 0
   });
 
@@ -28,52 +31,60 @@ const SensorStats: React.FC<SensorStatsProps> = ({
     if (isRecording) {
       setStats({
         maxWeight: currentWeight,
-        minWeight: currentWeight,
+        maxPsi: currentPsi,
         duration: 0
       });
     }
-  }, [isRecording]);
+  }, [isRecording, currentWeight, currentPsi]);
 
   // Update stats during recording
   useEffect(() => {
-    if (isRecording && typeof currentWeight === 'number' && !isNaN(currentWeight)) {
-      setStats(prev => ({
-        maxWeight: Math.max(prev.maxWeight, currentWeight),
-        minWeight: Math.min(prev.minWeight, currentWeight),
-        duration: data.length > 0 ? parseFloat(data[data.length - 1].timestamp) : 0
-      }));
+    if (isRecording) {
+      // Only update if we have valid current values
+      if (typeof currentWeight === 'number' && !isNaN(currentWeight)) {
+        setStats(prev => ({
+          maxWeight: Math.max(prev.maxWeight, currentWeight),
+          maxPsi: Math.max(prev.maxPsi, currentPsi || 0),
+          duration: data && data.length > 0 ? parseFloat(data[data.length - 1].timestamp) : 0
+        }));
+      }
     }
-  }, [currentWeight, data, isRecording]);
+  }, [currentWeight, currentPsi, data, isRecording]);
 
+  // Ensure safe values for display
   const safeCurrentWeight = typeof currentWeight === 'number' && !isNaN(currentWeight) 
     ? currentWeight 
     : 0;
+    
+  const safeCurrentPsi = typeof currentPsi === 'number' && !isNaN(currentPsi) 
+    ? currentPsi 
+    : 0;
 
-  const safeAvgWeight = typeof avgWeight === 'number' && !isNaN(avgWeight) 
-    ? avgWeight 
+  const safeAvgPsi = typeof avgPsi === 'number' && !isNaN(avgPsi) 
+    ? avgPsi 
     : 0;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
       <StatCard 
-        title="Current Weight" 
+        title="Current (mA)" 
         value={safeCurrentWeight} 
-        unit="g" 
+        unit="mA" 
       />
       <StatCard 
-        title="Average Weight" 
-        value={safeAvgWeight} 
-        unit="g" 
-      />
-      <StatCard 
-        title="Max Weight" 
+        title="Max Current" 
         value={stats.maxWeight} 
-        unit="g" 
+        unit="mA" 
       />
       <StatCard 
-        title="Min Weight" 
-        value={stats.minWeight} 
-        unit="g" 
+        title="Current PSI" 
+        value={safeCurrentPsi} 
+        unit="PSIG" 
+      />
+      <StatCard 
+        title="Max PSI" 
+        value={stats.maxPsi} 
+        unit="PSIG" 
       />
       <StatCard 
         title="Duration" 
